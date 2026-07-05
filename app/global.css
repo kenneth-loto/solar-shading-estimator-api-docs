@@ -1,12 +1,18 @@
-@import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
-@import 'fumadocs-ui/css/preset.css';
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+@theme {
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
 
 html {
   scrollbar-gutter: stable;
 }
 
 html > body[data-scroll-locked] {
+  /* biome-ignore lint: allowed for Fumadocs layout */
   margin-right: 0px !important;
+  /* biome-ignore lint: allowed for Fumadocs layout */
   --removed-body-scroll-bar-size: 0px !important;
 }

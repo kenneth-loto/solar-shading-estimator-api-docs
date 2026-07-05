@@ -3,13 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "start": "next start",
-    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
-    "postinstall": "fumadocs-mdx",
+    "devv": "next dev",
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "lint:fix": "biome check --write",
+    "lint:fix:unsafe": "biome check --write --unsafe",
+    "format": "biome format --write",
+    "postinstall": "fumadocs-mdx",
+    "prepare": "husky || true",
+    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit"
   },
   "dependencies": {
     "cnfast": "^0.0.8",
@@ -22,14 +26,18 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.2",
+    "@commitlint/cli": "^21.2.0",
+    "@commitlint/config-conventional": "^21.2.0",
     "@tailwindcss/postcss": "^4.3.1",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.0.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.1",
-    "typescript": "^6.0.3",
-    "@biomejs/biome": "^2.5.1"
+    "typescript": "^6.0.3"
   }
 }
