@@ -1,0 +1,11 @@
+{
+  "title": "Sites",
+  "description": "",
+  "pages": [
+    "listSites",
+    "createSite",
+    "getSiteById",
+    "updateSite",
+    "deleteSite"
+  ]
+}

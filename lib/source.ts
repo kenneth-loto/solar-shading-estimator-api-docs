@@ -1,12 +1,13 @@
 import { docs } from "collections/server";
 import { loader } from "fumadocs-core/source";
 import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
+import { openapiPlugin } from "fumadocs-openapi/server";
 import { docsContentRoute, docsImageRoute, docsRoute } from "./shared";
 
 export const source = loader({
   baseUrl: docsRoute,
   source: docs.toFumadocsSource(),
-  plugins: [lucideIconsPlugin()],
+  plugins: [lucideIconsPlugin(), openapiPlugin()],
 });
 
 export function getPageImage(page: (typeof source)["$inferPage"]) {

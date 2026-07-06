@@ -14,22 +14,25 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "paths": {
-      "@/*": ["./*"],
-      "collections/*": ["./.source/*"]
-    },
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "collections/server": ["./.source/server.ts"],
+      "@/*": ["./*"]
+    },
+    "types": ["bun-types"]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "next.config.mjs",
+    ".source/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

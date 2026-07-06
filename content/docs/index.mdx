@@ -1,13 +1,29 @@
 ---
-title: Hello World
-description: Your first document
+title: Introduction
+description: Documentation for the Solar Shading Estimator API
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+Most solar estimator tools assume a clear, unobstructed roof. This API answers a more practical question: **how much does shading from the surroundings actually cut into expected output?**
 
-## What is Next?
+It combines historical irradiance data from NASA POWER, a baseline production estimate from PVWatts, and a simplified shading model based on a site's obstruction profile — to produce a more realistic energy estimate than a standard unobstructed calculation.
 
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+## What you can do
+
+- Manage **sites** with location, panel configuration, and horizon profile data
+- Pull historical **irradiance** data for any coordinate and date range
+- Get baseline **PVWatts** production estimates
+- Calculate **shading loss** from a horizon profile
+- Run a full shading-adjusted **analysis** combining all of the above
+
+## Authentication
+
+Write endpoints (`POST`, `PATCH`, `DELETE`) require an API key passed via the `x-api-key` header. Request one from the API administrator.
+
+## Limitations
+
+This is a simplified estimator, not a professional solar design tool — no 3D geometry, no per-panel modeling, and shading is estimated from a handful of sample days rather than a full 8,760-hour simulation. See the [project README](https://github.com/your-username/solar-shading-estimator-api) for the full list of intentional simplifications.
+
+<Callout type="warn">
+  The live API is hosted on Render's free tier, which sleeps after 15 minutes of inactivity. If your first request hangs, it's waking up —
+  wait ~30 seconds and retry.
+</Callout>
