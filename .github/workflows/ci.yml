@@ -155,37 +155,37 @@ jobs:
       - name: Run build
         run: bun run build
 
-  # deploy:
-  #   name: Deploy
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 10
-  #   needs: [build]
-  #   if: github.event_name == 'push'
-  #   env:
-  #     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  #     NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
-  #     NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
-  #     API_URL: ${{ secrets.API_URL }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v7
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build]
+    if: github.event_name == 'push'
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+      API_URL: ${{ secrets.API_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
 
-  #     - name: Setup Bun
-  #       uses: oven-sh/setup-bun@v2
-  #       with:
-  #         bun-version: "1.3.14"
-  #         cache: true
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+          cache: true
 
-  #     - name: Install Vercel CLI
-  #       run: bun add -g vercel
+      - name: Install Vercel CLI
+        run: bun add -g vercel
 
-  #     - name: Pull Vercel environment
-  #       run: vercel pull --yes --environment=${{ github.ref_name == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=${{ github.ref_name == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
 
-  #     - name: Build project artifacts
-  #       run: vercel build ${{ github.ref_name == 'main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build project artifacts
+        run: vercel build ${{ github.ref_name == 'main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
-  #     - name: Deploy to Vercel
-  #       run: vercel deploy --prebuilt ${{ github.ref_name == 'main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to Vercel
+        run: vercel deploy --prebuilt ${{ github.ref_name == 'main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}

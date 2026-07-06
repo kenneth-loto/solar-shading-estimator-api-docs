@@ -12,7 +12,7 @@ const sentryOrigin = sentryDsn ? new URL(sentryDsn).origin : "";
 
 const cspDirectives = [
   "default-src 'self'",
-  `script-src 'self' ${isDev ? "'unsafe-inline' 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://va.vercel-scripts.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data:",
   "font-src 'self'",
