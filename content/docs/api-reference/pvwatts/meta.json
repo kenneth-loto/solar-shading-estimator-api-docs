@@ -1,0 +1,5 @@
+{
+  "title": "Pv Watts",
+  "description": "",
+  "pages": ["getPvWattsEstimate"]
+}

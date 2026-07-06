@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "index",
+    "---Api Reference---",
+    "api-reference/app",
+    "api-reference/sites",
+    "api-reference/irradiance",
+    "api-reference/pvwatts",
+    "api-reference/shading",
+    "api-reference/analysis"
+  ]
+}
