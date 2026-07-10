@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as Sentry from "@sentry/nextjs";
 import { createOpenAPI } from "fumadocs-openapi/server";
+import * as v from "valibot";
 import { serverEnv } from "@/env";
 import { getErrorMessage } from "./errors";
 
@@ -9,6 +10,20 @@ const isProduction = serverEnv.NODE_ENV === "production";
 
 const CACHE_DIR = ".cache";
 const CACHE_FILE = join(CACHE_DIR, "openapi-spec.json");
+
+const openApiSpecSchema = v.pipe(
+  v.unknown(),
+  v.check(
+    (input) =>
+      typeof input === "object" &&
+      input !== null &&
+      !Array.isArray(input) &&
+      (typeof (input as Record<string, unknown>).openapi === "string" ||
+        typeof (input as Record<string, unknown>).swagger === "string"),
+
+    "Expected a valid OpenAPI or Swagger document",
+  ),
+);
 
 function saveToCache(spec: unknown) {
   if (!existsSync(CACHE_DIR)) {
@@ -18,8 +33,14 @@ function saveToCache(spec: unknown) {
   writeFileSync(CACHE_FILE, JSON.stringify(spec));
 }
 
-function loadFromCache(): unknown {
-  return JSON.parse(readFileSync(CACHE_FILE, "utf-8"));
+function loadFromCache() {
+  try {
+    const raw = JSON.parse(readFileSync(CACHE_FILE, "utf-8"));
+
+    return v.safeParse(openApiSpecSchema, raw).success ? raw : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchWithRetry(
@@ -76,14 +97,31 @@ export const openapi = createOpenAPI({
   proxyUrl: "/api/proxy",
   input: {
     "solar-shading-estimator-api": async () => {
-      if (existsSync(CACHE_FILE)) {
-        return loadFromCache();
+      const cached = existsSync(CACHE_FILE) ? loadFromCache() : null;
+
+      if (cached) return cached;
+
+      const raw = await fetchWithRetry(`${serverEnv.API_URL}/openapi.json`);
+      const result = v.safeParse(openApiSpecSchema, raw);
+
+      if (!result.success) {
+        const message = `[openapi] Fetched spec failed validation: ${v.summarize(result.issues)}`;
+
+        if (isProduction) {
+          Sentry.captureException(new Error(message), {
+            tags: { source: "openapi-validation" },
+            extra: { issues: result.issues },
+          });
+        } else {
+          console.error(message);
+        }
+
+        throw new Error(message);
       }
 
-      const spec = await fetchWithRetry(`${serverEnv.API_URL}/openapi.json`);
-      saveToCache(spec);
+      saveToCache(raw);
 
-      return spec;
+      return raw;
     },
   },
 });
