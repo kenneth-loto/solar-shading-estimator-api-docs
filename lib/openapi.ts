@@ -55,6 +55,7 @@ export async function fetchWithRetry(
 }
 
 export const openapi = createOpenAPI({
+  proxyUrl: "/api/proxy",
   input: {
     "solar-shading-estimator-api": () =>
       fetchWithRetry(`${serverEnv.API_URL}/openapi.json`),
