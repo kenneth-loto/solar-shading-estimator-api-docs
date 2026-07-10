@@ -1,9 +1,26 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import * as Sentry from "@sentry/nextjs";
 import { createOpenAPI } from "fumadocs-openapi/server";
 import { serverEnv } from "@/env";
 import { getErrorMessage } from "./errors";
 
 const isProduction = serverEnv.NODE_ENV === "production";
+
+const CACHE_DIR = ".cache";
+const CACHE_FILE = join(CACHE_DIR, "openapi-spec.json");
+
+function saveToCache(spec: unknown) {
+  if (!existsSync(CACHE_DIR)) {
+    mkdirSync(CACHE_DIR, { recursive: true });
+  }
+
+  writeFileSync(CACHE_FILE, JSON.stringify(spec));
+}
+
+function loadFromCache(): unknown {
+  return JSON.parse(readFileSync(CACHE_FILE, "utf-8"));
+}
 
 export async function fetchWithRetry(
   url: string,
@@ -33,6 +50,7 @@ export async function fetchWithRetry(
             message,
           );
         }
+
         throw error;
       }
 
@@ -57,7 +75,15 @@ export async function fetchWithRetry(
 export const openapi = createOpenAPI({
   proxyUrl: "/api/proxy",
   input: {
-    "solar-shading-estimator-api": () =>
-      fetchWithRetry(`${serverEnv.API_URL}/openapi.json`),
+    "solar-shading-estimator-api": async () => {
+      if (existsSync(CACHE_FILE)) {
+        return loadFromCache();
+      }
+
+      const spec = await fetchWithRetry(`${serverEnv.API_URL}/openapi.json`);
+      saveToCache(spec);
+
+      return spec;
+    },
   },
 });
