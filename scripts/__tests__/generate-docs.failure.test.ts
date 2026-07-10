@@ -5,6 +5,8 @@ const mockGenerateFiles = mock(() =>
 );
 const mockReadFileSync = mock((_path: string) => "{}");
 const mockWriteFileSync = mock((_path: string, _data: string) => {});
+const mockExistsSync = mock((_path: string) => true);
+const mockMkdirSync = mock((_path: string, _options?: object) => undefined);
 
 mock.module("@/env", () => ({
   serverEnv: {
@@ -19,6 +21,8 @@ mock.module("fumadocs-openapi", () => ({
 }));
 
 const fsMock = {
+  existsSync: mockExistsSync,
+  mkdirSync: mockMkdirSync,
   readFileSync: mockReadFileSync,
   writeFileSync: mockWriteFileSync,
 };

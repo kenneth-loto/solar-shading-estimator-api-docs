@@ -1,9 +1,39 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import * as Sentry from "@sentry/nextjs";
 import { createOpenAPI } from "fumadocs-openapi/server";
+import * as v from "valibot";
 import { serverEnv } from "@/env";
 import { getErrorMessage } from "./errors";
 
 const isProduction = serverEnv.NODE_ENV === "production";
+
+const CACHE_DIR = ".cache";
+const CACHE_FILE = join(CACHE_DIR, "openapi-spec.json");
+
+const openApiSpecSchema = v.union([
+  v.looseObject({ openapi: v.string() }),
+  v.looseObject({ swagger: v.string() }),
+]);
+
+function saveToCache(spec: Record<string, unknown>) {
+  if (!existsSync(CACHE_DIR)) {
+    mkdirSync(CACHE_DIR, { recursive: true });
+  }
+
+  writeFileSync(CACHE_FILE, JSON.stringify(spec));
+}
+
+function loadFromCache() {
+  try {
+    const raw = JSON.parse(readFileSync(CACHE_FILE, "utf-8"));
+    const result = v.safeParse(openApiSpecSchema, raw);
+
+    return result.success ? result.output : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function fetchWithRetry(
   url: string,
@@ -33,6 +63,7 @@ export async function fetchWithRetry(
             message,
           );
         }
+
         throw error;
       }
 
@@ -55,8 +86,34 @@ export async function fetchWithRetry(
 }
 
 export const openapi = createOpenAPI({
+  proxyUrl: "/api/proxy",
   input: {
-    "solar-shading-estimator-api": () =>
-      fetchWithRetry(`${serverEnv.API_URL}/openapi.json`),
+    "solar-shading-estimator-api": async () => {
+      const cached = loadFromCache();
+
+      if (cached) return cached;
+
+      const raw = await fetchWithRetry(`${serverEnv.API_URL}/openapi.json`);
+      const result = v.safeParse(openApiSpecSchema, raw);
+
+      if (!result.success) {
+        const message = `[openapi] Fetched spec failed validation: ${v.summarize(result.issues)}`;
+
+        if (isProduction) {
+          Sentry.captureException(new Error(message), {
+            tags: { source: "openapi-validation" },
+            extra: { issues: result.issues },
+          });
+        } else {
+          console.error(message);
+        }
+
+        throw new Error(message);
+      }
+
+      saveToCache(result.output);
+
+      return raw;
+    },
   },
 });

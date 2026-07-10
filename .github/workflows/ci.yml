@@ -182,11 +182,21 @@ jobs:
       - name: Install Vercel CLI
         run: bun add -g vercel
 
+      - name: Set deploy environment
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "VERCEL_ENV=production" >> "$GITHUB_ENV"
+            echo "VERCEL_PROD_FLAG=--prod" >> "$GITHUB_ENV"
+          else
+            echo "VERCEL_ENV=preview" >> "$GITHUB_ENV"
+            echo "VERCEL_PROD_FLAG=" >> "$GITHUB_ENV"
+          fi
+
       - name: Pull Vercel environment
-        run: vercel pull --yes --environment=${{ github.ref_name == 'main' && 'production' || 'preview' }}
+        run: vercel pull --yes --environment=${{ env.VERCEL_ENV }}
 
       - name: Build project artifacts
-        run: vercel build ${{ github.ref_name == 'main' && '--prod' || '' }}
+        run: vercel build ${{ env.VERCEL_PROD_FLAG }}
 
       - name: Deploy to Vercel
-        run: vercel deploy --prebuilt ${{ github.ref_name == 'main' && '--prod' || '' }}
+        run: vercel deploy --prebuilt ${{ env.VERCEL_PROD_FLAG }}

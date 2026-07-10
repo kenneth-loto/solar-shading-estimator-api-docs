@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 
 const mockGenerateFiles = mock(() => Promise.resolve());
 
+const mockExistsSync = mock((_path: string) => true);
+const mockMkdirSync = mock((_path: string, _options?: object) => undefined);
 const mockReadFileSync = mock((path: string) => {
   if (path.includes("api-reference/meta.json")) {
     return JSON.stringify({ pages: ["get-irradiance", "get-shading"] });
@@ -31,6 +33,8 @@ mock.module("fumadocs-openapi", () => ({
 }));
 
 const fsMock = {
+  existsSync: mockExistsSync,
+  mkdirSync: mockMkdirSync,
   readFileSync: mockReadFileSync,
   writeFileSync: mockWriteFileSync,
 };
