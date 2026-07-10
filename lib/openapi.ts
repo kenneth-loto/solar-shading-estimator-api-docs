@@ -11,21 +11,12 @@ const isProduction = serverEnv.NODE_ENV === "production";
 const CACHE_DIR = ".cache";
 const CACHE_FILE = join(CACHE_DIR, "openapi-spec.json");
 
-const openApiSpecSchema = v.pipe(
-  v.unknown(),
-  v.check(
-    (input) =>
-      typeof input === "object" &&
-      input !== null &&
-      !Array.isArray(input) &&
-      (typeof (input as Record<string, unknown>).openapi === "string" ||
-        typeof (input as Record<string, unknown>).swagger === "string"),
+const openApiSpecSchema = v.union([
+  v.looseObject({ openapi: v.string() }),
+  v.looseObject({ swagger: v.string() }),
+]);
 
-    "Expected a valid OpenAPI or Swagger document",
-  ),
-);
-
-function saveToCache(spec: unknown) {
+function saveToCache(spec: Record<string, unknown>) {
   if (!existsSync(CACHE_DIR)) {
     mkdirSync(CACHE_DIR, { recursive: true });
   }
@@ -36,8 +27,9 @@ function saveToCache(spec: unknown) {
 function loadFromCache() {
   try {
     const raw = JSON.parse(readFileSync(CACHE_FILE, "utf-8"));
+    const result = v.safeParse(openApiSpecSchema, raw);
 
-    return v.safeParse(openApiSpecSchema, raw).success ? raw : null;
+    return result.success ? result.output : null;
   } catch {
     return null;
   }
@@ -97,7 +89,7 @@ export const openapi = createOpenAPI({
   proxyUrl: "/api/proxy",
   input: {
     "solar-shading-estimator-api": async () => {
-      const cached = existsSync(CACHE_FILE) ? loadFromCache() : null;
+      const cached = loadFromCache();
 
       if (cached) return cached;
 
@@ -119,7 +111,7 @@ export const openapi = createOpenAPI({
         throw new Error(message);
       }
 
-      saveToCache(raw);
+      saveToCache(result.output);
 
       return raw;
     },
