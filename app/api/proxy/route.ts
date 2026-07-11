@@ -1,11 +1,9 @@
 import * as Sentry from "@sentry/nextjs";
 import type { NextRequest } from "next/server";
-import { serverEnv } from "@/env";
 
-const isProduction = serverEnv.NODE_ENV === "production";
-
-const ALLOWED_ORIGINS = [serverEnv.API_URL];
+const isProduction = process.env.NODE_ENV === "production";
 const METHODS_WITH_BODY = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const ALLOWED_HOST = "solar-shading-estimator-api.onrender.com";
 
 async function handler(req: NextRequest) {
   const targetUrlStr = req.nextUrl.searchParams.get("url");
@@ -23,44 +21,28 @@ async function handler(req: NextRequest) {
     return Response.json({ error: "Invalid URL" }, { status: 400 });
   }
 
-  if (!ALLOWED_ORIGINS.includes(targetUrl.origin)) {
-    return Response.json(
-      { error: `Origin ${targetUrl.origin} not allowed` },
-      { status: 400 },
-    );
+  if (targetUrl.protocol !== "https:" || targetUrl.hostname !== ALLOWED_HOST) {
+    return Response.json({ error: "Host not allowed" }, { status: 400 });
   }
-
-  const fetchUrl = new URL(
-    targetUrl.pathname + targetUrl.search + targetUrl.hash,
-    serverEnv.API_URL,
-  );
 
   const headers = new Headers();
 
-  if (cookie) {
-    headers.set("cookie", cookie);
-  }
+  if (cookie) headers.set("cookie", cookie);
 
   const ct = req.headers.get("content-type");
 
-  if (ct) {
-    headers.set("content-type", ct);
-  }
+  if (ct) headers.set("content-type", ct);
 
   const accept = req.headers.get("accept");
 
-  if (accept) {
-    headers.set("accept", accept);
-  }
+  if (accept) headers.set("accept", accept);
 
   const apiKey = req.headers.get("x-api-key");
 
-  if (apiKey) {
-    headers.set("x-api-key", apiKey);
-  }
+  if (apiKey) headers.set("x-api-key", apiKey);
 
   try {
-    const apiRes = await fetch(fetchUrl, {
+    const apiRes = await fetch(targetUrl, {
       method: req.method,
       headers,
       body: METHODS_WITH_BODY.has(req.method)
