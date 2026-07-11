@@ -55,7 +55,7 @@ async function handler(req: NextRequest) {
   }
 
   try {
-    const apiRes = await fetch(targetUrlStr, {
+    const apiRes = await fetch(targetUrl, {
       method: req.method,
       headers,
       body: METHODS_WITH_BODY.has(req.method)
