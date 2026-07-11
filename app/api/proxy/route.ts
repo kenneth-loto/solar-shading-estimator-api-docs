@@ -51,11 +51,7 @@ async function handler(req: NextRequest) {
   }
 
   try {
-    // codeql[js/request-forgery] -- targetUrl.hostname is verified above
-    // against a hardcoded allow-list literal (ALLOWED_HOST); the request
-    // can only ever reach that single, fixed origin. See CodeQL's own
-    // recommendation for this query: allow-listing the hostname is the
-    // documented fix, which is what the check above does.
+    // codeql[js/request-forgery]
     const apiRes = await fetch(targetUrl, {
       method: req.method,
       headers,
