@@ -30,6 +30,11 @@ async function handler(req: NextRequest) {
     );
   }
 
+  const fetchUrl = new URL(
+    targetUrl.pathname + targetUrl.search + targetUrl.hash,
+    serverEnv.API_URL,
+  );
+
   const headers = new Headers();
 
   if (cookie) {
@@ -55,7 +60,7 @@ async function handler(req: NextRequest) {
   }
 
   try {
-    const apiRes = await fetch(targetUrl, {
+    const apiRes = await fetch(fetchUrl, {
       method: req.method,
       headers,
       body: METHODS_WITH_BODY.has(req.method)
